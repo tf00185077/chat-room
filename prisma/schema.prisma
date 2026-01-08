@@ -1,0 +1,81 @@
+// Prisma Schema for Chat Application
+// 使用 Vercel Postgres (PostgreSQL)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        Int    @id @default(autoincrement())
+  name      String
+  avatarUrl String
+  
+  // Relations
+  conversations ConversationParticipant[]
+  sentMessages  Message[]                @relation("MessageSender")
+  reactions     MessageReaction[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Conversation {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  participants ConversationParticipant[]
+  messages     Message[]
+}
+
+model ConversationParticipant {
+  id             Int          @id @default(autoincrement())
+  conversationId Int
+  userId         Int
+  joinedAt       DateTime     @default(now())
+  
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([conversationId, userId])
+  @@index([conversationId])
+  @@index([userId])
+}
+
+model Message {
+  id             Int              @id @default(autoincrement())
+  conversationId Int
+  senderId       Int?             // null 表示系統訊息
+  type           String           // "text" | "system"
+  content        String
+  createdAt      DateTime         @default(now())
+  
+  // Relations
+  conversation   Conversation     @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User?            @relation("MessageSender", fields: [senderId], references: [id], onDelete: SetNull)
+  reactions      MessageReaction[]
+  
+  @@index([conversationId, createdAt])
+  @@index([senderId])
+}
+
+model MessageReaction {
+  id        Int     @id @default(autoincrement())
+  messageId Int
+  userId    Int
+  type      String   // "like" | "love" | "laugh"
+  createdAt DateTime @default(now())
+  
+  // Relations
+  message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([messageId, userId, type])
+  @@index([messageId])
+  @@index([userId])
+}

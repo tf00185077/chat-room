@@ -1,13 +1,9 @@
-"use client";
-
-import { useState } from "react";
 import { Typography, Box } from "@mui/material";
-import { getConversationList } from "./mockData";
-import type { ConversationListItem } from "./types";
+import { getConversationList } from "../lib/db";
 import ConversationList from "./_components/ConversationList";
 
-export default function Home() {
-  const [conversations] = useState<ConversationListItem[]>(() => getConversationList());
+export default async function Home() {
+  const conversations = await getConversationList();
 
   return (
     <Box sx={{ maxWidth: 800, margin: "0 auto", padding: 2 }}>

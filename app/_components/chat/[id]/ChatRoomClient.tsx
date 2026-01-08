@@ -10,7 +10,7 @@ import MessageInput from "./MessageInput";
 
 interface ChatRoomClientProps {
   conversationId: number;
-  baseMessages: (Message & { reactions: MessageReaction[] })[];
+  baseMessages: (Message & { reactions: MessageReaction[]; senderName?: string; senderAvatar?: string })[];
   otherParticipant: { name: string; avatar: string } | null;
 }
 

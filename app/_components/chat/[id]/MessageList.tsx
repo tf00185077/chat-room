@@ -4,11 +4,10 @@ import { useEffect, useRef } from "react";
 import { Box } from "@mui/material";
 import type { Message, MessageReaction } from "../../../types";
 import { CURRENT_USER_ID } from "../../../types";
-import { mockUsers } from "../../../mockData";
 import MessageBubble from "./MessageBubble";
 
 interface MessageListProps {
-  messages: (Message & { reactions: MessageReaction[] })[];
+  messages: (Message & { reactions: MessageReaction[]; senderName?: string; senderAvatar?: string })[];
 }
 
 export default function MessageList({ messages }: MessageListProps) {
@@ -28,9 +27,6 @@ export default function MessageList({ messages }: MessageListProps) {
       }}
     >
       {messages.map((msg) => {
-        const sender = msg.senderId
-          ? mockUsers.find((u) => u.id === msg.senderId)
-          : null;
         const isOwn = msg.senderId === CURRENT_USER_ID;
 
         return (
@@ -39,8 +35,8 @@ export default function MessageList({ messages }: MessageListProps) {
             message={msg}
             reactions={msg.reactions}
             isOwn={isOwn}
-            senderName={sender?.name || "系統"}
-            senderAvatar={sender?.avatarUrl || ""}
+            senderName={msg.senderName || "系統"}
+            senderAvatar={msg.senderAvatar || ""}
           />
         );
       })}
