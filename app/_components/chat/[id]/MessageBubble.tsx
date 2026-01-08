@@ -6,7 +6,6 @@ import {
   Paper,
   Typography,
   Avatar,
-  IconButton,
 } from "@mui/material";
 import ThumbUpIcon from "@mui/icons-material/ThumbUp";
 import FavoriteIcon from "@mui/icons-material/Favorite";
@@ -14,6 +13,7 @@ import MoodIcon from "@mui/icons-material/Mood";
 import type { Message, MessageReaction } from "../../../types";
 import { CURRENT_USER_ID } from "../../../types";
 import { formatMessageTime } from "./utils";
+import ReactionButton from "./ReactionButton";
 
 interface MessageBubbleProps {
   message: Message;
@@ -120,88 +120,21 @@ export default function MessageBubble({
               alignItems: "center",
             }}
           >
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 0.25,
-              }}
-            >
-              <IconButton
-                size="small"
-                onClick={() => toggleReaction("like")}
-                sx={{ width: 24, height: 24, padding: 0.5 }}
-              >
-                <ThumbUpIcon sx={{ fontSize: 16 }} />
-              </IconButton>
-              
-              {reactionCounts.like > 0 && (
-                <Typography
-                  variant="caption"
-                  sx={{
-                    fontSize: "0.75rem",
-                    minWidth: "1ch",
-                    textAlign: "center",
-                  }}
-                >
-                  {reactionCounts.like}
-                </Typography>
-              )}
-            </Box>
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 0.25,
-              }}
-            >
-              <IconButton
-                size="small"
-                onClick={() => toggleReaction("love")}
-                sx={{ width: 24, height: 24, padding: 0.5 }}
-              >
-                <FavoriteIcon sx={{ fontSize: 16 }} />
-              </IconButton>
-              {reactionCounts.love > 0 && (
-                <Typography
-                  variant="caption"
-                  sx={{
-                    fontSize: "0.75rem",
-                    minWidth: "1ch",
-                    textAlign: "center",
-                  }}
-                >
-                  {reactionCounts.love}
-                </Typography>
-              )}
-            </Box>
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 0.25,
-              }}
-            >
-              <IconButton
-                size="small"
-                onClick={() => toggleReaction("laugh")}
-                sx={{ width: 24, height: 24, padding: 0.5 }}
-              >
-                <MoodIcon sx={{ fontSize: 16 }} />
-              </IconButton>
-              {reactionCounts.laugh > 0 && (
-                <Typography
-                  variant="caption"
-                  sx={{
-                    fontSize: "0.75rem",
-                    minWidth: "1ch",
-                    textAlign: "center",
-                  }}
-                >
-                  {reactionCounts.laugh}
-                </Typography>
-              )}
-            </Box>
+            <ReactionButton
+              icon={<ThumbUpIcon sx={{ fontSize: 16 }} />}
+              count={reactionCounts.like}
+              onClick={() => toggleReaction("like")}
+            />
+            <ReactionButton
+              icon={<FavoriteIcon sx={{ fontSize: 16 }} />}
+              count={reactionCounts.love}
+              onClick={() => toggleReaction("love")}
+            />
+            <ReactionButton
+              icon={<MoodIcon sx={{ fontSize: 16 }} />}
+              count={reactionCounts.laugh}
+              onClick={() => toggleReaction("laugh")}
+            />
           </Box>
         </Box>
       </Box>
