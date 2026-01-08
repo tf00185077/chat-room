@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { Box } from "@mui/material";
-import { io, Socket } from "socket.io-client";
+import Pusher from "pusher-js";
 import type { Message, MessageReaction } from "../../../types";
 import ChatHeader from "./ChatHeader";
 import MessageList from "./MessageList";
@@ -26,36 +26,39 @@ export default function ChatRoomClient({
   const [messages, setMessages] = useState<(Message & { reactions: MessageReaction[]; senderName?: string; senderAvatar?: string })[]>(baseMessages);
   const [inputText, setInputText] = useState("");
   const [isSending, setIsSending] = useState(false);
-  const socketRef = useRef<Socket | null>(null);
+  const pusherRef = useRef<Pusher | null>(null);
+  const channelRef = useRef<any>(null);
 
-  // 初始化 WebSocket 連接
+  // 初始化 Pusher 連接
   useEffect(() => {
     // 只在客戶端連接
     if (typeof window === "undefined") return;
 
-    const socket = io({
-      path: "/api/socket/io",
-      transports: ["websocket", "polling"],
+    const pusherKey = process.env.NEXT_PUBLIC_PUSHER_KEY;
+    const pusherCluster = process.env.NEXT_PUBLIC_PUSHER_CLUSTER || "ap3";
+
+    if (!pusherKey) {
+      console.warn("Pusher key not configured");
+      return;
+    }
+
+    const pusher = new Pusher(pusherKey, {
+      cluster: pusherCluster,
     });
 
-    socketRef.current = socket;
+    pusherRef.current = pusher;
 
-    socket.on("connect", () => {
-      console.log("Socket connected:", socket.id);
-      // 連接成功後加入聊天室
-      socket.emit("join-room", conversationId);
-    });
+    // 訂閱聊天室頻道
+    const channelName = `conversation-${conversationId}`;
+    const channel = pusher.subscribe(channelName);
+    channelRef.current = channel;
 
-    socket.on("disconnect", () => {
-      console.log("Socket disconnected");
-    });
-
-    socket.on("connect_error", (error) => {
-      console.error("Socket connection error:", error);
+    channel.bind("pusher:subscription_succeeded", () => {
+      console.log(`Subscribed to ${channelName}`);
     });
 
     // 監聽新訊息
-    socket.on("new-message", (message: Message & { reactions: MessageReaction[]; senderName?: string; senderAvatar?: string }) => {
+    channel.bind("new-message", (message: Message & { reactions: MessageReaction[]; senderName?: string; senderAvatar?: string }) => {
       console.log("Received new message:", message);
       setMessages((prev) => {
         // 避免重複添加
@@ -69,7 +72,7 @@ export default function ChatRoomClient({
     });
 
     // 監聽訊息更新（反應變化）
-    socket.on("message-updated", (updatedMessage: Message & { reactions: MessageReaction[]; senderName?: string; senderAvatar?: string }) => {
+    channel.bind("message-updated", (updatedMessage: Message & { reactions: MessageReaction[]; senderName?: string; senderAvatar?: string }) => {
       console.log("Received message update:", updatedMessage);
       setMessages((prev) =>
         prev.map((m) => (m.id === updatedMessage.id ? updatedMessage : m))
@@ -78,10 +81,11 @@ export default function ChatRoomClient({
 
     // 清理函數
     return () => {
-      if (socket.connected) {
-        socket.emit("leave-room", conversationId);
+      if (channel) {
+        channel.unbind_all();
+        pusher.unsubscribe(channelName);
       }
-      socket.disconnect();
+      pusher.disconnect();
     };
   }, [conversationId]);
 

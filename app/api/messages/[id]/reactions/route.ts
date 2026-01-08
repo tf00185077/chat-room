@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../lib/prisma';
 import { getCurrentUserId } from '../../../../../lib/getSession';
-import { getSocketIO } from '../../../../../lib/socket';
+import { getPusherServer } from '../../../../../lib/pusher';
 
 export async function POST(
   request: NextRequest,
@@ -96,10 +96,16 @@ export async function POST(
       })),
     };
 
-    // 通過 WebSocket 廣播更新後的訊息
-    const io = getSocketIO();
-    if (io) {
-      io.to(`conversation-${message.conversationId}`).emit("message-updated", updatedMessage);
+    // 通過 Pusher 廣播更新後的訊息
+    const pusher = getPusherServer();
+    const channelName = `conversation-${message.conversationId}`;
+    if (pusher) {
+      try {
+        await pusher.trigger(channelName, "message-updated", updatedMessage);
+        console.log(`Broadcasting message update to ${channelName}:`, updatedMessage);
+      } catch (error) {
+        console.error("Error broadcasting message update via Pusher:", error);
+      }
     }
 
     return NextResponse.json({

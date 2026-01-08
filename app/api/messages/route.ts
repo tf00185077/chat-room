@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../lib/prisma';
 import { getCurrentUserId } from '../../../lib/getSession';
-import { getSocketIO } from '../../../lib/socket';
+import { getPusherServer } from '../../../lib/pusher';
 
 export async function POST(request: NextRequest) {
   try {
@@ -60,16 +60,18 @@ export async function POST(request: NextRequest) {
       })),
     };
 
-    // 通過 WebSocket 廣播新訊息
-    const io = getSocketIO();
-    const roomName = `conversation-${conversationId}`;
-    if (io) {
-      const room = io.sockets.adapter.rooms.get(roomName);
-      const clientCount = room?.size || 0;
-      console.log(`Broadcasting new message to ${roomName} (${clientCount} clients):`, messageData);
-      io.to(roomName).emit("new-message", messageData);
+    // 通過 Pusher 廣播新訊息
+    const pusher = getPusherServer();
+    const channelName = `conversation-${conversationId}`;
+    if (pusher) {
+      try {
+        await pusher.trigger(channelName, "new-message", messageData);
+        console.log(`Broadcasting new message to ${channelName}:`, messageData);
+      } catch (error) {
+        console.error("Error broadcasting message via Pusher:", error);
+      }
     } else {
-      console.warn("Socket.IO instance not available, message not broadcasted");
+      console.warn("Pusher not configured, message not broadcasted");
     }
 
     return NextResponse.json(messageData);
