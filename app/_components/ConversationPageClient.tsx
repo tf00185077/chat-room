@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { Box, Button, Typography, Alert } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import LoginIcon from "@mui/icons-material/Login";
 import type { ConversationListItem } from "../types";
 import ConversationList from "./ConversationList";
 import NewConversationDialog from "./NewConversationDialog";
