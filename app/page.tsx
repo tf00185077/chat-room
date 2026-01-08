@@ -1,5 +1,5 @@
 import { Typography, Box } from "@mui/material";
-import { getConversationList } from "../lib/db";
+import { getConversationList } from "../lib/db/getConversationList";
 import ConversationList from "./_components/ConversationList";
 
 export default async function Home() {

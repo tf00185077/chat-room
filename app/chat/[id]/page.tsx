@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getChatRoomData } from "../../../lib/db";
+import { getChatRoomData } from "../../../lib/db/getChatRoomData";
 import { CURRENT_USER_ID } from "../../types";
 import ChatRoomClient from "../../_components/chat/[id]/ChatRoomClient";
 

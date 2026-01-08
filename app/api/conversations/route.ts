@@ -1,4 +1,4 @@
-import { getConversationList } from '../../../lib/db';
+import { getConversationList } from '../../../lib/db/getConversationList';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
