@@ -2,8 +2,8 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Box } from "@mui/material";
-import { CURRENT_USER_ID } from "../../../types";
 import type { Message, MessageReaction } from "../../../types";
 import ChatHeader from "./ChatHeader";
 import MessageList from "./MessageList";
@@ -20,10 +20,13 @@ export default function ChatRoomClient({
   baseMessages,
   otherParticipant,
 }: ChatRoomClientProps) {
+  const { data: session } = useSession();
   const router = useRouter();
   const [inputText, setInputText] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [optimisticMessages, setOptimisticMessages] = useState<(Message & { reactions: MessageReaction[]; senderName?: string; senderAvatar?: string })[]>([]);
+
+  const currentUserId = session?.user?.id ? Number(session.user.id) : null;
 
   // Combine base messages with optimistic updates
   const messages = useMemo(() => {
@@ -31,7 +34,7 @@ export default function ChatRoomClient({
   }, [baseMessages, optimisticMessages]);
 
   const handleSend = async () => {
-    if (!inputText.trim() || isSending) return;
+    if (!inputText.trim() || isSending || !currentUserId) return;
 
     const content = inputText.trim();
     setInputText("");
@@ -41,13 +44,13 @@ export default function ChatRoomClient({
     const tempMessage: Message & { reactions: MessageReaction[]; senderName?: string; senderAvatar?: string } = {
       id: Date.now(), // 臨時 ID
       conversationId,
-      senderId: CURRENT_USER_ID,
+      senderId: currentUserId,
       type: "text",
       content,
       createdAt: new Date().toISOString(),
       reactions: [],
-      senderName: "我",
-      senderAvatar: "",
+      senderName: session?.user?.name || "我",
+      senderAvatar: session?.user?.avatarUrl || "",
     };
 
     setOptimisticMessages((prev) => [...prev, tempMessage]);

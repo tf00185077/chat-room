@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -90,10 +91,20 @@ async function main() {
 
   console.log(`建立 ${userMap.size} 個使用者...`);
   for (const user of userMap.values()) {
+    // 為每個用戶生成預設密碼（使用 bcrypt 加密）
+    // 預設密碼為 "password123"，實際應用中應該讓用戶自己設置
+    const hashedPassword = await bcrypt.hash('password123', 10);
+    
     await prisma.user.upsert({
       where: { id: user.id },
-      update: user,
-      create: user,
+      update: {
+        ...user,
+        password: hashedPassword,
+      },
+      create: {
+        ...user,
+        password: hashedPassword,
+      },
     });
   }
 

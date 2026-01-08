@@ -1,12 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../lib/prisma';
-import { CURRENT_USER_ID } from '../../../../../app/types';
+import { getCurrentUserId } from '../../../../../lib/getSession';
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const userId = await getCurrentUserId();
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const { id } = await params;
     const messageId = Number(id);
     const body = await request.json();
@@ -24,7 +32,7 @@ export async function POST(
       where: {
         messageId_userId_type: {
           messageId,
-          userId: CURRENT_USER_ID,
+          userId,
           type,
         },
       },
@@ -44,7 +52,7 @@ export async function POST(
       reaction = await prisma.messageReaction.create({
         data: {
           messageId,
-          userId: CURRENT_USER_ID,
+          userId,
           type,
         },
       });

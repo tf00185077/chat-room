@@ -1,9 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../lib/prisma';
-import { CURRENT_USER_ID } from '../../../app/types';
+import { getCurrentUserId } from '../../../lib/getSession';
 
 export async function POST(request: NextRequest) {
   try {
+    const userId = await getCurrentUserId();
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const { conversationId, content } = body;
 
@@ -18,7 +26,7 @@ export async function POST(request: NextRequest) {
     const message = await prisma.message.create({
       data: {
         conversationId: Number(conversationId),
-        senderId: CURRENT_USER_ID,
+        senderId: userId,
         type: 'text',
         content: content.trim(),
       },

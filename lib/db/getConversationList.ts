@@ -1,8 +1,9 @@
 import { prisma } from '../prisma';
-import { CURRENT_USER_ID } from '../../app/types';
+import { getCurrentUserId } from '../getSession';
 import type { ConversationListItem } from '../../app/types';
 
 export async function getConversationList(): Promise<ConversationListItem[]> {
+  const currentUserId = await getCurrentUserId();
   const conversations = await prisma.conversation.findMany({
     include: {
       participants: {
@@ -27,9 +28,10 @@ export async function getConversationList(): Promise<ConversationListItem[]> {
 
   return conversations.map((conv) => {
     // 找出除了目前使用者外的參與者
-    const otherParticipant = conv.participants
-      .find((p) => p.userId !== CURRENT_USER_ID)?.user ||
-      conv.participants[0]?.user;
+    const otherParticipant = currentUserId
+      ? conv.participants.find((p) => p.userId !== currentUserId)?.user ||
+        conv.participants[0]?.user
+      : conv.participants[0]?.user;
 
     const lastMessage = conv.messages[0]
       ? {

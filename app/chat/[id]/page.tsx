@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { getChatRoomData } from "../../../lib/db/getChatRoomData";
-import { CURRENT_USER_ID } from "../../types";
+import { getCurrentUserId } from "../../../lib/getSession";
 import ChatRoomClient from "../../_components/chat/[id]/ChatRoomClient";
 
 export default async function ChatRoom({
@@ -10,13 +10,16 @@ export default async function ChatRoom({
 }) {
   const { id } = await params;
   const conversationId = Number(id);
+  const currentUserId = await getCurrentUserId();
 
   const data = await getChatRoomData(conversationId);
   if (!data) {
     notFound();
   }
 
-  const other = data.participants.find((p) => p.id !== CURRENT_USER_ID);
+  const other = currentUserId
+    ? data.participants.find((p) => p.id !== currentUserId)
+    : data.participants[0];
   const baseMessages = data.messages;
   const otherParticipant = other ? { name: other.name, avatar: other.avatarUrl } : null;
 
