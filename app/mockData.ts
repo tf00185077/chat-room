@@ -1,71 +1,172 @@
-import { User, Conversation, Message, MessageReaction, ConversationListItem, ChatRoomData } from "./types";
+import {
+  User,
+  Conversation,
+  Message,
+  MessageReaction,
+  ConversationListItem,
+  ChatRoomData,
+} from "./types";
 import { CURRENT_USER_ID } from "./types";
 
-// 假資料：使用者
-export const mockUsers: User[] = [
-  { id: 1, name: "我", avatarUrl: "https://i.pravatar.cc/150?img=1" },
-  { id: 2, name: "張三", avatarUrl: "https://i.pravatar.cc/150?img=2" },
-  { id: 3, name: "李四", avatarUrl: "https://i.pravatar.cc/150?img=3" },
-  { id: 4, name: "王五", avatarUrl: "https://i.pravatar.cc/150?img=4" },
-];
+// ------- 原始 JSON 資料（改成你的格式） -------
+const rawData = {
+  conversations: [
+    {
+      id: 1,
+      participants: [
+        { userId: 4, user: "David", avatar: "https://i.pravatar.cc/150?img=4" },
+        { userId: 2, user: "Bob", avatar: "https://i.pravatar.cc/150?img=2" },
+      ],
+      lastMessage: "I'm building a new side project.",
+      timestamp: 1739016600000,
+    },
+    {
+      id: 2,
+      participants: [
+        { userId: 1, user: "Alice", avatar: "https://i.pravatar.cc/150?img=1" },
+        { userId: 3, user: "Charlie", avatar: "https://i.pravatar.cc/150?img=3" },
+      ],
+      lastMessage: "What's your favorite editor?",
+      timestamp: 1739017200000,
+    },
+  ],
+  messages: [
+    {
+      conversationId: 1,
+      userId: 4,
+      user: "David",
+      avatar: "https://i.pravatar.cc/150?img=4",
+      messageType: "text",
+      message: "Jest vs Cypress?",
+      reactions: { like: 4, love: 2, laugh: 0 },
+      timestamp: 1739016000000,
+    },
+    {
+      conversationId: 1,
+      userId: 2,
+      user: "Bob",
+      avatar: "https://i.pravatar.cc/150?img=2",
+      messageType: "text",
+      message: "Redux or Zustand?",
+      reactions: { like: 5, love: 3, laugh: 0 },
+      timestamp: 1739016060000,
+    },
+    {
+      conversationId: 1,
+      userId: 2,
+      user: "Bob",
+      avatar: "https://i.pravatar.cc/150?img=2",
+      messageType: "text",
+      message: "Jest vs Cypress?",
+      reactions: { like: 0, love: 0, laugh: 0 },
+      timestamp: 1739016120000,
+    },
+    {
+      conversationId: 1,
+      userId: 4,
+      user: "David",
+      avatar: "https://i.pravatar.cc/150?img=4",
+      messageType: "text",
+      message: "How's it going?",
+      reactions: { like: 4, love: 1, laugh: 1 },
+      timestamp: 1739016180000,
+    },
+  ],
+};
+// ---------------------------------------------
 
-// 假資料：對話
-export const mockConversations: Conversation[] = [
-  { id: 1, createdAt: "2024-01-15T10:00:00Z" },
-  { id: 2, createdAt: "2024-01-16T14:30:00Z" },
-  { id: 3, createdAt: "2024-01-17T09:15:00Z" },
-];
+// 建立 Users 資料：從 conversations participants 與 messages 的 user 資訊匯總
+const userMap = new Map<number, User>();
+const addUser = (id: number, name: string, avatarUrl: string) => {
+  if (!userMap.has(id)) {
+    userMap.set(id, { id, name, avatarUrl });
+  }
+};
 
-// 假資料：訊息
-export const mockMessages: Message[] = [
-  { id: 1, conversationId: 1, senderId: 2, type: "text", content: "你好！", createdAt: "2024-01-15T10:00:00Z" },
-  { id: 2, conversationId: 1, senderId: CURRENT_USER_ID, type: "text", content: "嗨，最近如何？", createdAt: "2024-01-15T10:05:00Z" },
-  { id: 3, conversationId: 1, senderId: 2, type: "text", content: "還不錯，你呢？", createdAt: "2024-01-15T10:10:00Z" },
-  { id: 4, conversationId: 1, senderId: CURRENT_USER_ID, type: "text", content: "我也很好，謝謝！", createdAt: "2024-01-15T10:15:00Z" },
-  { id: 5, conversationId: 1, senderId: null, type: "system", content: "張三已加入對話", createdAt: "2024-01-15T10:20:00Z" },
-  
-  { id: 6, conversationId: 2, senderId: 3, type: "text", content: "明天開會記得帶資料", createdAt: "2024-01-16T14:30:00Z" },
-  { id: 7, conversationId: 2, senderId: CURRENT_USER_ID, type: "text", content: "好的，我會準備", createdAt: "2024-01-16T14:35:00Z" },
-  
-  { id: 8, conversationId: 3, senderId: 4, type: "text", content: "專案進度如何？", createdAt: "2024-01-17T09:15:00Z" },
-];
+rawData.conversations.forEach((conv) => {
+  conv.participants.forEach((p) => addUser(p.userId, p.user, p.avatar));
+});
+rawData.messages.forEach((msg) => addUser(msg.userId, msg.user, msg.avatar));
 
-// 假資料：反應
-export const mockReactions: MessageReaction[] = [
-  { id: 1, messageId: 2, userId: 2, type: "like" },
-  { id: 2, messageId: 3, userId: CURRENT_USER_ID, type: "love" },
-  { id: 3, messageId: 4, userId: 2, type: "laugh" },
-];
+export const mockUsers: User[] = Array.from(userMap.values());
+
+// Conversations
+export const mockConversations: Conversation[] = rawData.conversations.map((c) => ({
+  id: c.id,
+  createdAt: new Date(c.timestamp).toISOString(),
+}));
+
+// 生成 reactions 陣列（只有計數，使用虛擬 userId 來填充）
+let reactionId = 1;
+const createReactions = (
+  counts: { like: number; love: number; laugh: number },
+  messageId: number,
+): MessageReaction[] => {
+  const reactions: MessageReaction[] = [];
+  const pushMany = (type: "like" | "love" | "laugh", count: number) => {
+    for (let i = 0; i < count; i += 1) {
+      reactions.push({
+        id: reactionId++,
+        messageId,
+        userId: 1000000 + reactionId, // 虛擬使用者，僅用來表示數量
+        type,
+      });
+    }
+  };
+  pushMany("like", counts.like);
+  pushMany("love", counts.love);
+  pushMany("laugh", counts.laugh);
+  return reactions;
+};
+
+// Messages
+export const mockMessages: Message[] = rawData.messages.map((m, idx) => ({
+  id: idx + 1,
+  conversationId: m.conversationId,
+  senderId: m.userId,
+  type: m.messageType === "text" ? "text" : "system",
+  content: m.message,
+  createdAt: new Date(m.timestamp).toISOString(),
+}));
+
+// Reactions
+export const mockReactions: MessageReaction[] = rawData.messages.flatMap((m, idx) =>
+  createReactions(m.reactions, idx + 1),
+);
+
+// 參與者對照表
+const conversationParticipants: Record<number, number[]> = {};
+rawData.conversations.forEach((c) => {
+  conversationParticipants[c.id] = c.participants.map((p) => p.userId);
+});
 
 // 輔助函數：取得對話列表資料
 export function getConversationList(): ConversationListItem[] {
-  const conversationParticipants: Record<number, number> = {
-    1: 2, // conversation 1 的對方是 user 2
-    2: 3, // conversation 2 的對方是 user 3
-    3: 4, // conversation 3 的對方是 user 4
-  };
+  return mockConversations
+    .map((conv) => {
+      const participantIds = conversationParticipants[conv.id] || [];
+      const otherUserId = participantIds.find((id) => id !== CURRENT_USER_ID) ?? participantIds[0];
+      const otherParticipant = mockUsers.find((u) => u.id === otherUserId) || mockUsers[0];
 
-  return mockConversations.map((conv) => {
-    const otherUserId = conversationParticipants[conv.id];
-    const otherParticipant = mockUsers.find((u) => u.id === otherUserId)!;
-    
-    // 找出該對話的最後一則訊息
-    const messages = mockMessages.filter((m) => m.conversationId === conv.id);
-    const lastMessage = messages.length > 0 
-      ? messages.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0]
-      : null;
+      const messages = mockMessages.filter((m) => m.conversationId === conv.id);
+      const lastMessage =
+        messages.length > 0
+          ? messages.sort(
+              (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+            )[0]
+          : null;
 
-    return {
-      conversation: conv,
-      otherParticipant,
-      lastMessage,
-    };
-  }).sort((a, b) => {
-    // 依最後訊息時間排序
-    const timeA = a.lastMessage ? new Date(a.lastMessage.createdAt).getTime() : 0;
-    const timeB = b.lastMessage ? new Date(b.lastMessage.createdAt).getTime() : 0;
-    return timeB - timeA;
-  });
+      return {
+        conversation: conv,
+        otherParticipant,
+        lastMessage,
+      };
+    })
+    .sort((a, b) => {
+      const timeA = a.lastMessage ? new Date(a.lastMessage.createdAt).getTime() : 0;
+      const timeB = b.lastMessage ? new Date(b.lastMessage.createdAt).getTime() : 0;
+      return timeB - timeA;
+    });
 }
 
 // 輔助函數：取得聊天室資料
@@ -73,16 +174,9 @@ export function getChatRoomData(conversationId: number): ChatRoomData | null {
   const conversation = mockConversations.find((c) => c.id === conversationId);
   if (!conversation) return null;
 
-  // 找出參與者（簡化：假設每個對話只有兩個參與者）
-  const conversationParticipants: Record<number, number[]> = {
-    1: [1, 2],
-    2: [1, 3],
-    3: [1, 4],
-  };
   const participantIds = conversationParticipants[conversationId] || [];
   const participants = mockUsers.filter((u) => participantIds.includes(u.id));
 
-  // 找出該對話的所有訊息，並附上 reactions
   const messages = mockMessages
     .filter((m) => m.conversationId === conversationId)
     .map((msg) => ({
