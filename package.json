@@ -9,6 +9,7 @@
     "lint": "eslint",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
+    "db:fix-sequences": "tsx prisma/fix-sequences.ts",
     "db:studio": "prisma studio",
     "test": "jest --runInBand"
   },

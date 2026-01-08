@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Box,
   Paper,
@@ -30,25 +31,41 @@ export default function MessageBubble({
   senderName,
   senderAvatar,
 }: MessageBubbleProps) {
+  const router = useRouter();
   const [localReactions, setLocalReactions] = useState(reactions);
+  const [isToggling, setIsToggling] = useState(false);
 
-  const toggleReaction = (type: "like" | "love" | "laugh") => {
-    setLocalReactions((prev) => {
-      const existing = prev.find((r) => r.userId === CURRENT_USER_ID && r.type === type);
-      if (existing) {
-        return prev.filter((r) => r.id !== existing.id);
-      } else {
-        return [
-          ...prev.filter((r) => !(r.userId === CURRENT_USER_ID && r.type === type)),
-          {
-            id: Date.now(),
-            messageId: message.id,
-            userId: CURRENT_USER_ID,
-            type,
-          },
-        ];
+  // 當 reactions prop 更新時，同步本地狀態
+  useEffect(() => {
+    setLocalReactions(reactions);
+  }, [reactions]);
+
+  const toggleReaction = async (type: "like" | "love" | "laugh") => {
+    if (isToggling) return;
+
+    setIsToggling(true);
+    try {
+      const response = await fetch(`/api/messages/${message.id}/reactions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ type }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to toggle reaction");
       }
-    });
+
+      const data = await response.json();
+      setLocalReactions(data.reactions);
+      // 刷新頁面以確保所有用戶看到最新的反應
+      router.refresh();
+    } catch (error) {
+      console.error("Error toggling reaction:", error);
+    } finally {
+      setIsToggling(false);
+    }
   };
 
   const reactionCounts = {

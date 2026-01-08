@@ -211,6 +211,21 @@ async function main() {
     }
   }
 
+  // 重置 PostgreSQL 序列，確保 auto-increment 從正確的值開始
+  console.log('重置序列...');
+  await prisma.$executeRawUnsafe(
+    `SELECT setval('"Message_id_seq"', COALESCE((SELECT MAX(id) FROM "Message"), 1), true)`
+  );
+  await prisma.$executeRawUnsafe(
+    `SELECT setval('"MessageReaction_id_seq"', COALESCE((SELECT MAX(id) FROM "MessageReaction"), 1), true)`
+  );
+  await prisma.$executeRawUnsafe(
+    `SELECT setval('"User_id_seq"', COALESCE((SELECT MAX(id) FROM "User"), 1), true)`
+  );
+  await prisma.$executeRawUnsafe(
+    `SELECT setval('"Conversation_id_seq"', COALESCE((SELECT MAX(id) FROM "Conversation"), 1), true)`
+  );
+
   console.log('資料匯入完成！');
 }
 
