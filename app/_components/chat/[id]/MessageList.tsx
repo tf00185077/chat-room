@@ -1,19 +1,17 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useSession } from "next-auth/react";
 import { Box } from "@mui/material";
 import type { Message, MessageReaction } from "../../../types";
 import MessageBubble from "./MessageBubble";
 
 interface MessageListProps {
   messages: (Message & { reactions: MessageReaction[]; senderName?: string; senderAvatar?: string })[];
+  currentUserId: number | null;
 }
 
-export default function MessageList({ messages }: MessageListProps) {
-  const { data: session } = useSession();
+export default function MessageList({ messages, currentUserId }: MessageListProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const currentUserId = session?.user?.id ? Number(session.user.id) : null;
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

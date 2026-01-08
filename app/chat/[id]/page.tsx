@@ -28,6 +28,7 @@ export default async function ChatRoom({
       conversationId={conversationId}
       baseMessages={baseMessages}
       otherParticipant={otherParticipant}
+      currentUserId={currentUserId}
     />
   );
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import {
   Box,
   Paper,
@@ -12,7 +11,6 @@ import ThumbUpIcon from "@mui/icons-material/ThumbUp";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import MoodIcon from "@mui/icons-material/Mood";
 import type { Message, MessageReaction } from "../../../types";
-import { CURRENT_USER_ID } from "../../../types";
 import { formatMessageTime } from "./utils";
 import ReactionButton from "./ReactionButton";
 
@@ -31,7 +29,6 @@ export default function MessageBubble({
   senderName,
   senderAvatar,
 }: MessageBubbleProps) {
-  const router = useRouter();
   const [localReactions, setLocalReactions] = useState(reactions);
   const [isToggling, setIsToggling] = useState(false);
 
@@ -57,10 +54,10 @@ export default function MessageBubble({
         throw new Error("Failed to toggle reaction");
       }
 
+      // 反應更新會通過 WebSocket 廣播，不需要手動更新
+      // 但我們仍然更新本地狀態以提供即時反饋
       const data = await response.json();
       setLocalReactions(data.reactions);
-      // 刷新頁面以確保所有用戶看到最新的反應
-      router.refresh();
     } catch (error) {
       console.error("Error toggling reaction:", error);
     } finally {

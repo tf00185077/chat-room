@@ -10,7 +10,6 @@ import {
   Typography,
   Avatar,
   Button,
-  Drawer,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import LoginIcon from "@mui/icons-material/Login";
@@ -22,7 +21,7 @@ interface MainLayoutProps {
 }
 
 export default function MainLayout({ children }: MainLayoutProps) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [loginDrawerOpen, setLoginDrawerOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -46,7 +45,9 @@ export default function MainLayout({ children }: MainLayoutProps) {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             聊天室
           </Typography>
-          {session ? (
+          {status === "loading" ? (
+            <Box sx={{ width: 100, height: 36 }} />
+          ) : session ? (
             <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
               <Avatar src={session.user.avatarUrl} alt={session.user.name} sx={{ width: 32, height: 32 }} />
               <Typography variant="body2">{session.user.name}</Typography>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../lib/prisma';
 import { getCurrentUserId } from '../../../lib/getSession';
+import { getSocketIO } from '../../../lib/socket';
 
 export async function POST(request: NextRequest) {
   try {
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
       data: { updatedAt: new Date() },
     });
 
-    return NextResponse.json({
+    const messageData = {
       id: message.id,
       conversationId: message.conversationId,
       senderId: message.senderId,
@@ -57,7 +58,21 @@ export async function POST(request: NextRequest) {
         userId: r.userId,
         type: r.type,
       })),
-    });
+    };
+
+    // 通過 WebSocket 廣播新訊息
+    const io = getSocketIO();
+    const roomName = `conversation-${conversationId}`;
+    if (io) {
+      const room = io.sockets.adapter.rooms.get(roomName);
+      const clientCount = room?.size || 0;
+      console.log(`Broadcasting new message to ${roomName} (${clientCount} clients):`, messageData);
+      io.to(roomName).emit("new-message", messageData);
+    } else {
+      console.warn("Socket.IO instance not available, message not broadcasted");
+    }
+
+    return NextResponse.json(messageData);
   } catch (error) {
     console.error('Error creating message:', error);
     return NextResponse.json(
