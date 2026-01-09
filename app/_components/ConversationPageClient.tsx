@@ -17,8 +17,7 @@ export default function ConversationPageClient({
 }: ConversationPageClientProps) {
   const { data: session, status } = useSession();
   const [dialogOpen, setDialogOpen] = useState(false);
-
-  // 如果未登入，顯示提示訊息
+  
   if (status === "loading") {
     return (
       <Box sx={{ maxWidth: 800, margin: "0 auto", padding: 2 }}>

@@ -32,7 +32,6 @@ export default function MessageBubble({
   const [localReactions, setLocalReactions] = useState(reactions);
   const [isToggling, setIsToggling] = useState(false);
 
-  // 當 reactions prop 更新時，同步本地狀態
   useEffect(() => {
     setLocalReactions(reactions);
   }, [reactions]);
@@ -54,8 +53,7 @@ export default function MessageBubble({
         throw new Error("Failed to toggle reaction");
       }
 
-      // 反應更新會通過 WebSocket 廣播，不需要手動更新
-      // 但我們仍然更新本地狀態以提供即時反饋
+      // 更新本地狀態以提供即時反饋
       const data = await response.json();
       setLocalReactions(data.reactions);
     } catch (error) {
@@ -139,7 +137,6 @@ export default function MessageBubble({
                   },
                 }}
                 onClick={() => {
-                  // 點擊圖片放大查看
                   window.open(message.content, "_blank");
                 }}
               />

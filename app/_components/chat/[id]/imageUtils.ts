@@ -41,7 +41,7 @@ export function compressImageToBase64(file: File): Promise<string> {
           height = Math.floor(height * ratio);
         }
 
-        // 創建 canvas 並繪製壓縮後的圖片
+        // 創建 canvas 繪製壓縮後的圖片
         const canvas = document.createElement("canvas");
         canvas.width = width;
         canvas.height = height;
@@ -52,16 +52,11 @@ export function compressImageToBase64(file: File): Promise<string> {
           return;
         }
 
-        // 繪製圖片
         ctx.drawImage(img, 0, 0, width, height);
-
-        // 轉換為 base64
-        // 統一轉換為 JPEG 格式以確保較小的檔案大小
         const base64 = canvas.toDataURL("image/jpeg", JPEG_QUALITY);
 
-        // 驗證壓縮後的 base64 大小（應該遠小於原始大小）
-        const base64Size = base64.length * 0.75; // base64 大約是原始大小的 1.33 倍
-        const maxBase64Size = 5 * 1024 * 1024; // 5MB base64 限制（約 3.75MB 實際大小）
+        const base64Size = base64.length * 0.75;
+        const maxBase64Size = 5 * 1024 * 1024;
 
         if (base64Size > maxBase64Size) {
           reject(new Error("壓縮後圖片仍然太大，請選擇較小的圖片"));

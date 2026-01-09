@@ -36,7 +36,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 檢查是否已經存在與該用戶的對話（只有這兩個參與者）
     const existingConversations = await prisma.conversation.findMany({
       where: {
         participants: {
@@ -50,7 +49,6 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // 查找是否已有只包含這兩個用戶的對話
     for (const conv of existingConversations) {
       const participantIds = conv.participants.map((p) => p.userId);
       const hasBothUsers = 

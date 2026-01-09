@@ -26,9 +26,8 @@ export default function ChatHeader({ participants, conversationId, currentUserId
 
   const handleDeleted = () => {
     setDeleteDialogOpen(false);
-    // 重定向到對話列表
     router.push("/");
-    router.refresh(); // 刷新對話列表
+    router.refresh();
   };
 
   return (

@@ -11,7 +11,7 @@ export function formatTime(dateString: string): string {
   const diffDays = Math.floor(diffMins / 1440);
   if (diffDays < 7) return `${diffDays} 天前`;
 
-  // 使用固定格式避免 hydration 錯誤（不依賴 locale）
+  // 使用固定格式避免 hydration error
   const month = date.getMonth() + 1;
   const day = date.getDate();
   const monthNames = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];

@@ -22,7 +22,7 @@ export default function ChatRoomClient({
   participants,
   currentUserId,
 }: ChatRoomClientProps) {
-  const { data: session } = useSession(); // 保留用於發送訊息時檢查，但不用于 UI 判斷
+  const { data: session } = useSession();
   const [messages, setMessages] = useState<(Message & { reactions: MessageReaction[]; senderName?: string; senderAvatar?: string })[]>(baseMessages);
   const [currentParticipants, setCurrentParticipants] = useState<User[]>(participants);
   const [inputText, setInputText] = useState("");
@@ -32,7 +32,6 @@ export default function ChatRoomClient({
 
   // 初始化 Pusher 連接
   useEffect(() => {
-    // 只在客戶端連接
     if (typeof window === "undefined") return;
 
     const pusherKey = process.env.NEXT_PUBLIC_PUSHER_KEY;
@@ -49,7 +48,6 @@ export default function ChatRoomClient({
 
     pusherRef.current = pusher;
 
-    // 訂閱聊天室頻道
     const channelName = `conversation-${conversationId}`;
     const channel = pusher.subscribe(channelName);
     channelRef.current = channel;
@@ -58,7 +56,6 @@ export default function ChatRoomClient({
       console.log(`Subscribed to ${channelName}`);
     });
 
-    // 監聽新訊息
     channel.bind("new-message", (message: Message & { reactions: MessageReaction[]; senderName?: string; senderAvatar?: string }) => {
       console.log("Received new message:", message);
       setMessages((prev) => {
@@ -72,7 +69,6 @@ export default function ChatRoomClient({
       });
     });
 
-    // 監聽訊息更新（反應變化）
     channel.bind("message-updated", (updatedMessage: Message & { reactions: MessageReaction[]; senderName?: string; senderAvatar?: string }) => {
       console.log("Received message update:", updatedMessage);
       setMessages((prev) =>
@@ -80,13 +76,11 @@ export default function ChatRoomClient({
       );
     });
 
-    // 監聽參與者更新
     channel.bind("participants-updated", (data: { participants: User[] }) => {
       console.log("Received participants update:", data);
       setCurrentParticipants(data.participants);
     });
 
-    // 清理函數
     return () => {
       if (channel) {
         channel.unbind_all();
@@ -96,18 +90,15 @@ export default function ChatRoomClient({
     };
   }, [conversationId]);
 
-  // 當 baseMessages 變化時更新
   useEffect(() => {
     setMessages(baseMessages);
   }, [baseMessages]);
 
-  // 當 participants prop 變化時更新
   useEffect(() => {
     setCurrentParticipants(participants);
   }, [participants]);
 
   const handleSend = async () => {
-    // 使用 session 檢查是否已登入（用於功能檢查）
     const isAuthenticated = session?.user?.id;
     if (!inputText.trim() || isSending || !isAuthenticated || !currentUserId) return;
 
@@ -145,9 +136,8 @@ export default function ChatRoomClient({
       }
 
       const newMessage = await response.json();
-      console.log("Message sent, response:", newMessage);
       
-      // 如果 WebSocket 沒有收到訊息（例如連接失敗），手動添加到狀態作為備用
+      // 如果 WebSocket 沒有收到訊息手動添加到狀態作為備用
       setTimeout(() => {
         setMessages((prev) => {
           if (!prev.some((m) => m.id === newMessage.id)) {
@@ -156,13 +146,13 @@ export default function ChatRoomClient({
           }
           return prev;
         });
-      }, 500); // 等待 500ms，如果 WebSocket 沒有收到則手動添加
+      }, 500); 
     } catch (error) {
       console.error("Error sending message:", error);
       if (type === "text") {
-        setInputText(content); // 恢復輸入內容
+        setInputText(content);
       }
-      alert(error instanceof Error ? error.message : "發送訊息失敗，請重試");
+      alert(error instanceof Error ? error.message : "發送訊息失敗");
     } finally {
       setIsSending(false);
     }

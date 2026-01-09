@@ -45,8 +45,7 @@ export async function DELETE(
       );
     }
 
-    // 刪除對話（級聯刪除會自動處理 participants, messages, reactions）
-    // 這會釋放所有 base64 圖片數據的空間
+    // 刪除對話釋放空間
     await prisma.conversation.delete({
       where: { id: conversationId },
     });

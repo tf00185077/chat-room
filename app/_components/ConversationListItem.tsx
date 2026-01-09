@@ -16,7 +16,6 @@ interface ConversationListItemProps {
 }
 
 export default function ConversationListItem({ item }: ConversationListItemProps) {
-  // 計算時間顯示（伺服器端和客戶端可能不同，使用 suppressHydrationWarning 處理）
   const timeDisplay = item.lastMessage ? formatTime(item.lastMessage.createdAt) : "";
 
   return (

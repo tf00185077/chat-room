@@ -18,7 +18,7 @@ export async function GET(
     const { id } = await params;
     const conversationId = Number(id);
 
-    // 檢查對話是否存在並獲取參與者
+    // 檢查對話是否存在並取得參與者
     const conversation = await prisma.conversation.findUnique({
       where: { id: conversationId },
       include: {
@@ -33,7 +33,7 @@ export async function GET(
       );
     }
 
-    // 檢查當前用戶是否在對話中
+    // 檢查使用者是否在對話中
     const isParticipant = conversation.participants.some(
       (p) => p.userId === currentUserId
     );
@@ -45,7 +45,7 @@ export async function GET(
       );
     }
 
-    // 獲取參與者 ID 列表
+    // 獲取參與者列表
     const participantIds = conversation.participants.map((p) => p.userId);
 
     // 獲取所有用戶，排除已在對話中的參與者

@@ -23,7 +23,6 @@ export default function MessageInput({
   disabled = false,
 }: MessageInputProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  // 文字訊息需要 inputText，圖片訊息通過 onImageSelect 直接發送，不需要檢查 inputText
   const isDisabled = !inputText.trim() || isSending || disabled;
 
   const handleImageClick = () => {
@@ -34,11 +33,9 @@ export default function MessageInput({
     const file = e.target.files?.[0];
     if (!file || !onImageSelect) return;
 
-    // 重置 input，允許選擇同一檔案
     e.target.value = "";
 
     try {
-      // 動態導入壓縮函數
       const { compressImageToBase64 } = await import("./imageUtils");
       const base64 = await compressImageToBase64(file);
       onImageSelect(base64);

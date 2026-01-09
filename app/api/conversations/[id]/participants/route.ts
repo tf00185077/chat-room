@@ -43,7 +43,7 @@ export async function POST(
       );
     }
 
-    // 檢查當前用戶是否在對話中
+    // 檢查使用者是否在對話中
     const isParticipant = conversation.participants.some(
       (p) => p.userId === currentUserId
     );
@@ -55,7 +55,7 @@ export async function POST(
       );
     }
 
-    // 檢查用戶是否已經是參與者
+    // 檢查使用者是否已經是參與者
     const alreadyParticipant = conversation.participants.some(
       (p) => p.userId === Number(userId)
     );
@@ -79,7 +79,7 @@ export async function POST(
       );
     }
 
-    // 添加參與者
+    // 新增參與者
     await prisma.conversationParticipant.create({
       data: {
         conversationId,

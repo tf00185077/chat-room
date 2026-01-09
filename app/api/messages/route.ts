@@ -55,9 +55,9 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // 驗證 base64 大小（限制為 5MB base64，約 3.75MB 實際大小）
-      const base64Size = content.length * 0.75; // base64 大約是原始大小的 1.33 倍
-      const maxBase64Size = 5 * 1024 * 1024; // 5MB
+      // 驗證 base64 大小
+      const base64Size = content.length * 0.75;
+      const maxBase64Size = 5 * 1024 * 1024;
       if (base64Size > maxBase64Size) {
         return NextResponse.json(
           { error: `Image size too large. Maximum size is ${Math.floor(maxBase64Size / 1024 / 1024)}MB` },
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
         conversationId: Number(conversationId),
         senderId: userId,
         type: type,
-        content: type === "text" ? content.trim() : content, // 圖片不需要 trim
+        content: type === "text" ? content.trim() : content, 
       },
       include: {
         sender: true,
@@ -80,7 +80,6 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // 更新 conversation 的 updatedAt
     await prisma.conversation.update({
       where: { id: Number(conversationId) },
       data: { updatedAt: new Date() },
@@ -103,13 +102,11 @@ export async function POST(request: NextRequest) {
       })),
     };
 
-    // 通過 Pusher 廣播新訊息
     const pusher = getPusherServer();
     const channelName = `conversation-${conversationId}`;
     if (pusher) {
       try {
         await pusher.trigger(channelName, "new-message", messageData);
-        console.log(`Broadcasting new message to ${channelName}:`, messageData);
       } catch (error) {
         console.error("Error broadcasting message via Pusher:", error);
       }

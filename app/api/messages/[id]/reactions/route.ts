@@ -28,7 +28,6 @@ export async function POST(
       );
     }
 
-    // 獲取訊息以取得 conversationId
     const message = await prisma.message.findUnique({
       where: { id: messageId },
       include: {
@@ -43,7 +42,6 @@ export async function POST(
       );
     }
 
-    // 檢查是否已經有這個反應
     const existing = await prisma.messageReaction.findUnique({
       where: {
         messageId_userId_type: {
@@ -56,7 +54,6 @@ export async function POST(
 
     let reaction;
     if (existing) {
-      // 如果存在，則刪除（取消反應）
       await prisma.messageReaction.delete({
         where: {
           id: existing.id,
@@ -64,7 +61,6 @@ export async function POST(
       });
       reaction = null;
     } else {
-      // 如果不存在，則創建
       reaction = await prisma.messageReaction.create({
         data: {
           messageId,
@@ -74,7 +70,6 @@ export async function POST(
       });
     }
 
-    // 獲取更新後的所有反應
     const reactions = await prisma.messageReaction.findMany({
       where: { messageId },
     });
@@ -102,7 +97,6 @@ export async function POST(
     if (pusher) {
       try {
         await pusher.trigger(channelName, "message-updated", updatedMessage);
-        console.log(`Broadcasting message update to ${channelName}:`, updatedMessage);
       } catch (error) {
         console.error("Error broadcasting message update via Pusher:", error);
       }

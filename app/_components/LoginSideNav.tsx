@@ -7,7 +7,6 @@ import {
   Box,
   TextField,
   Button,
-  Typography,
   Alert,
   Tabs,
   Tab,
@@ -83,7 +82,6 @@ export default function LoginSideNav({ open, onClose }: LoginSideNavProps) {
         return;
       }
 
-      // 註冊成功後自動登入
       const result = await signIn("credentials", {
         name,
         password,
