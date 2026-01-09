@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation";
 import { Paper, Avatar, Typography, IconButton, Box, Chip } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import DeleteIcon from "@mui/icons-material/Delete";
 import type { User } from "../../../types";
 import AddParticipantDialog from "./AddParticipantDialog";
+import DeleteConversationDialog from "./DeleteConversationDialog";
 
 interface ChatHeaderProps {
   participants: User[];
@@ -17,9 +19,17 @@ interface ChatHeaderProps {
 export default function ChatHeader({ participants, conversationId, currentUserId }: ChatHeaderProps) {
   const router = useRouter();
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   // 排除當前用戶，顯示其他參與者
   const otherParticipants = participants.filter((p) => p.id !== currentUserId);
+
+  const handleDeleted = () => {
+    setDeleteDialogOpen(false);
+    // 重定向到對話列表
+    router.push("/");
+    router.refresh(); // 刷新對話列表
+  };
 
   return (
     <>
@@ -62,6 +72,14 @@ export default function ChatHeader({ participants, conversationId, currentUserId
         >
           <PersonAddIcon />
         </IconButton>
+
+        <IconButton
+          onClick={() => setDeleteDialogOpen(true)}
+          color="error"
+          title="刪除聊天室"
+        >
+          <DeleteIcon />
+        </IconButton>
       </Paper>
 
       <AddParticipantDialog
@@ -69,6 +87,13 @@ export default function ChatHeader({ participants, conversationId, currentUserId
         onClose={() => setAddDialogOpen(false)}
         conversationId={conversationId}
         onParticipantAdded={() => setAddDialogOpen(false)}
+      />
+
+      <DeleteConversationDialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        conversationId={conversationId}
+        onDeleted={handleDeleted}
       />
     </>
   );
