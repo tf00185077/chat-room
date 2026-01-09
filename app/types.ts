@@ -17,8 +17,8 @@ export interface Message {
   id: number;
   conversationId: number;
   senderId: number | null; // null 表示系統訊息
-  type: "text" | "system";
-  content: string;
+  type: "text" | "system" | "image";
+  content: string; // 文字訊息存文字，圖片訊息存 base64 data URL
   createdAt: string;
 }
 

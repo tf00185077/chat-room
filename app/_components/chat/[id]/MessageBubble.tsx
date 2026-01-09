@@ -118,12 +118,34 @@ export default function MessageBubble({
           <Paper
             elevation={0}
             sx={{
-              p: 1.5,
+              p: message.type === "image" ? 0 : 1.5,
               backgroundColor: isOwn ? "primary.light" : "grey.100",
               color: isOwn ? "primary.contrastText" : "text.primary",
+              overflow: "hidden",
             }}
           >
-            <Typography variant="body1">{message.content}</Typography>
+            {message.type === "image" ? (
+              <Box
+                component="img"
+                src={message.content}
+                alt="上傳的圖片"
+                sx={{
+                  maxWidth: "100%",
+                  maxHeight: "400px",
+                  display: "block",
+                  cursor: "pointer",
+                  "&:hover": {
+                    opacity: 0.9,
+                  },
+                }}
+                onClick={() => {
+                  // 點擊圖片放大查看
+                  window.open(message.content, "_blank");
+                }}
+              />
+            ) : (
+              <Typography variant="body1">{message.content}</Typography>
+            )}
           </Paper>
           <Box
             sx={{

@@ -14,13 +14,56 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { conversationId, content } = body;
+    const { conversationId, content, type = "text" } = body;
 
-    if (!conversationId || !content || !content.trim()) {
+    if (!conversationId) {
       return NextResponse.json(
-        { error: 'conversationId and content are required' },
+        { error: 'conversationId is required' },
         { status: 400 }
       );
+    }
+
+    // 驗證訊息類型
+    if (type !== "text" && type !== "image") {
+      return NextResponse.json(
+        { error: 'Invalid message type. Must be "text" or "image"' },
+        { status: 400 }
+      );
+    }
+
+    // 驗證內容
+    if (type === "text") {
+      if (!content || !content.trim()) {
+        return NextResponse.json(
+          { error: 'content is required for text messages' },
+          { status: 400 }
+        );
+      }
+    } else if (type === "image") {
+      if (!content) {
+        return NextResponse.json(
+          { error: 'content is required for image messages' },
+          { status: 400 }
+        );
+      }
+
+      // 驗證 base64 data URL 格式
+      if (!content.startsWith("data:image/")) {
+        return NextResponse.json(
+          { error: 'Invalid image format. Must be base64 data URL' },
+          { status: 400 }
+        );
+      }
+
+      // 驗證 base64 大小（限制為 5MB base64，約 3.75MB 實際大小）
+      const base64Size = content.length * 0.75; // base64 大約是原始大小的 1.33 倍
+      const maxBase64Size = 5 * 1024 * 1024; // 5MB
+      if (base64Size > maxBase64Size) {
+        return NextResponse.json(
+          { error: `Image size too large. Maximum size is ${Math.floor(maxBase64Size / 1024 / 1024)}MB` },
+          { status: 400 }
+        );
+      }
     }
 
     // 創建新訊息
@@ -28,8 +71,8 @@ export async function POST(request: NextRequest) {
       data: {
         conversationId: Number(conversationId),
         senderId: userId,
-        type: 'text',
-        content: content.trim(),
+        type: type,
+        content: type === "text" ? content.trim() : content, // 圖片不需要 trim
       },
       include: {
         sender: true,

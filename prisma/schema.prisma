@@ -53,8 +53,8 @@ model Message {
   id             Int              @id @default(autoincrement())
   conversationId Int
   senderId       Int?             // null 表示系統訊息
-  type           String           // "text" | "system"
-  content        String
+  type           String           // "text" | "system" | "image" - 圖片訊息存 base64 data URL 在 content
+  content        String           // 文字訊息存文字，圖片訊息存 base64 data URL (data:image/jpeg;base64,...)
   createdAt      DateTime         @default(now())
   
   // Relations

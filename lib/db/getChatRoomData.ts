@@ -40,7 +40,7 @@ export async function getChatRoomData(
       id: msg.id,
       conversationId: msg.conversationId,
       senderId: msg.senderId,
-      type: msg.type as "text" | "system",
+      type: msg.type as "text" | "system" | "image",
       content: msg.content,
       createdAt: msg.createdAt.toISOString(),
       senderName: msg.sender?.name || "系統",

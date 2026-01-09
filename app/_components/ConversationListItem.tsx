@@ -53,6 +53,8 @@ export default function ConversationListItem({ item }: ConversationListItemProps
                 {item.lastMessage
                   ? item.lastMessage.type === "system"
                     ? `[系統] ${item.lastMessage.content}`
+                    : item.lastMessage.type === "image"
+                    ? "[圖片]"
                     : item.lastMessage.content
                   : "尚無訊息"}
               </Typography>

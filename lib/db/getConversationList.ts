@@ -50,7 +50,7 @@ export async function getConversationList(): Promise<ConversationListItem[]> {
           id: conv.messages[0].id,
           conversationId: conv.messages[0].conversationId,
           senderId: conv.messages[0].senderId,
-          type: conv.messages[0].type as "text" | "system",
+          type: conv.messages[0].type as "text" | "system" | "image",
           content: conv.messages[0].content,
           createdAt: conv.messages[0].createdAt.toISOString(),
         }

@@ -28,7 +28,7 @@ export default function ChatRoomClient({
   const [inputText, setInputText] = useState("");
   const [isSending, setIsSending] = useState(false);
   const pusherRef = useRef<Pusher | null>(null);
-  const channelRef = useRef<any>(null);
+  const channelRef = useRef<ReturnType<Pusher["subscribe"]> | null>(null);
 
   // 初始化 Pusher 連接
   useEffect(() => {
@@ -113,6 +113,17 @@ export default function ChatRoomClient({
 
     const content = inputText.trim();
     setInputText("");
+    await sendMessage(content, "text");
+  };
+
+  const handleImageSelect = async (base64: string) => {
+    const isAuthenticated = session?.user?.id;
+    if (isSending || !isAuthenticated || !currentUserId) return;
+
+    await sendMessage(base64, "image");
+  };
+
+  const sendMessage = async (content: string, type: "text" | "image") => {
     setIsSending(true);
 
     try {
@@ -124,11 +135,13 @@ export default function ChatRoomClient({
         body: JSON.stringify({
           conversationId,
           content,
+          type,
         }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to send message");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to send message");
       }
 
       const newMessage = await response.json();
@@ -146,8 +159,10 @@ export default function ChatRoomClient({
       }, 500); // 等待 500ms，如果 WebSocket 沒有收到則手動添加
     } catch (error) {
       console.error("Error sending message:", error);
-      setInputText(content); // 恢復輸入內容
-      alert("發送訊息失敗，請重試");
+      if (type === "text") {
+        setInputText(content); // 恢復輸入內容
+      }
+      alert(error instanceof Error ? error.message : "發送訊息失敗，請重試");
     } finally {
       setIsSending(false);
     }
@@ -165,6 +180,7 @@ export default function ChatRoomClient({
         inputText={inputText}
         onInputChange={setInputText}
         onSend={handleSend}
+        onImageSelect={handleImageSelect}
         isSending={isSending}
         disabled={!currentUserId}
       />
