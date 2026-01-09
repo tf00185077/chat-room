@@ -17,17 +17,14 @@ export default async function ChatRoom({
     notFound();
   }
 
-  const other = currentUserId
-    ? data.participants.find((p) => p.id !== currentUserId)
-    : data.participants[0];
   const baseMessages = data.messages;
-  const otherParticipant = other ? { name: other.name, avatar: other.avatarUrl } : null;
+  const participants = data.participants;
 
   return (
     <ChatRoomClient
       conversationId={conversationId}
       baseMessages={baseMessages}
-      otherParticipant={otherParticipant}
+      participants={participants}
       currentUserId={currentUserId}
     />
   );

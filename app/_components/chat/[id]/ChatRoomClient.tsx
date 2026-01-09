@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { Box } from "@mui/material";
 import Pusher from "pusher-js";
-import type { Message, MessageReaction } from "../../../types";
+import type { Message, MessageReaction, User } from "../../../types";
 import ChatHeader from "./ChatHeader";
 import MessageList from "./MessageList";
 import MessageInput from "./MessageInput";
@@ -12,18 +12,19 @@ import MessageInput from "./MessageInput";
 interface ChatRoomClientProps {
   conversationId: number;
   baseMessages: (Message & { reactions: MessageReaction[]; senderName?: string; senderAvatar?: string })[];
-  otherParticipant: { name: string; avatar: string } | null;
+  participants: User[];
   currentUserId: number | null;
 }
 
 export default function ChatRoomClient({
   conversationId,
   baseMessages,
-  otherParticipant,
+  participants,
   currentUserId,
 }: ChatRoomClientProps) {
   const { data: session } = useSession(); // 保留用於發送訊息時檢查，但不用于 UI 判斷
   const [messages, setMessages] = useState<(Message & { reactions: MessageReaction[]; senderName?: string; senderAvatar?: string })[]>(baseMessages);
+  const [currentParticipants, setCurrentParticipants] = useState<User[]>(participants);
   const [inputText, setInputText] = useState("");
   const [isSending, setIsSending] = useState(false);
   const pusherRef = useRef<Pusher | null>(null);
@@ -79,6 +80,12 @@ export default function ChatRoomClient({
       );
     });
 
+    // 監聽參與者更新
+    channel.bind("participants-updated", (data: { participants: User[] }) => {
+      console.log("Received participants update:", data);
+      setCurrentParticipants(data.participants);
+    });
+
     // 清理函數
     return () => {
       if (channel) {
@@ -93,6 +100,11 @@ export default function ChatRoomClient({
   useEffect(() => {
     setMessages(baseMessages);
   }, [baseMessages]);
+
+  // 當 participants prop 變化時更新
+  useEffect(() => {
+    setCurrentParticipants(participants);
+  }, [participants]);
 
   const handleSend = async () => {
     // 使用 session 檢查是否已登入（用於功能檢查）
@@ -143,7 +155,11 @@ export default function ChatRoomClient({
 
   return (
     <Box sx={{ height: "100vh", display: "flex", flexDirection: "column" }}>
-      <ChatHeader otherParticipant={otherParticipant} />
+      <ChatHeader 
+        participants={currentParticipants} 
+        conversationId={conversationId}
+        currentUserId={currentUserId}
+      />
       <MessageList messages={messages} currentUserId={currentUserId} />
       <MessageInput
         inputText={inputText}
