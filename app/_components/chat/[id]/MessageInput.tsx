@@ -1,19 +1,25 @@
 "use client";
 
-import { Paper, TextField, IconButton } from "@mui/material";
+import { Paper, TextField, IconButton, CircularProgress } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
 
 interface MessageInputProps {
   inputText: string;
   onInputChange: (text: string) => void;
   onSend: () => void;
+  isSending?: boolean;
+  disabled?: boolean;
 }
 
 export default function MessageInput({
   inputText,
   onInputChange,
   onSend,
+  isSending = false,
+  disabled = false,
 }: MessageInputProps) {
+  const isDisabled = !inputText.trim() || isSending || disabled;
+
   return (
     <Paper
       elevation={2}
@@ -30,7 +36,7 @@ export default function MessageInput({
         value={inputText}
         onChange={(e) => onInputChange(e.target.value)}
         onKeyPress={(e) => {
-          if (e.key === "Enter" && !e.shiftKey) {
+          if (e.key === "Enter" && !e.shiftKey && !isDisabled) {
             e.preventDefault();
             onSend();
           }
@@ -38,14 +44,19 @@ export default function MessageInput({
         multiline
         maxRows={4}
         size="small"
+        disabled={isSending || disabled}
       />
       <IconButton
         color="primary"
         onClick={onSend}
-        disabled={!inputText.trim()}
+        disabled={isDisabled}
         sx={{ alignSelf: "flex-end" }}
       >
-        <SendIcon />
+        {isSending ? (
+          <CircularProgress size={20} color="inherit" />
+        ) : (
+          <SendIcon />
+        )}
       </IconButton>
     </Paper>
   );

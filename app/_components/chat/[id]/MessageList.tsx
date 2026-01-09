@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Box } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import type { Message, MessageReaction } from "../../../types";
 import MessageBubble from "./MessageBubble";
 
@@ -26,21 +26,39 @@ export default function MessageList({ messages, currentUserId }: MessageListProp
         backgroundColor: "grey.50",
       }}
     >
-      {messages.map((msg) => {
-        const isOwn = currentUserId !== null && msg.senderId === currentUserId;
+      {messages.length === 0 ? (
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100%",
+            color: "text.secondary",
+          }}
+        >
+          <Typography variant="body2">
+            還沒有訊息，開始聊天吧！
+          </Typography>
+        </Box>
+      ) : (
+        <>
+          {messages.map((msg) => {
+            const isOwn = currentUserId !== null && msg.senderId === currentUserId;
 
-        return (
-          <MessageBubble
-            key={msg.id}
-            message={msg}
-            reactions={msg.reactions}
-            isOwn={isOwn}
-            senderName={msg.senderName || "系統"}
-            senderAvatar={msg.senderAvatar || ""}
-          />
-        );
-      })}
-      <div ref={messagesEndRef} />
+            return (
+              <MessageBubble
+                key={msg.id}
+                message={msg}
+                reactions={msg.reactions}
+                isOwn={isOwn}
+                senderName={msg.senderName || "系統"}
+                senderAvatar={msg.senderAvatar || ""}
+              />
+            );
+          })}
+          <div ref={messagesEndRef} />
+        </>
+      )}
     </Box>
   );
 }

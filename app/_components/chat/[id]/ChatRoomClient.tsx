@@ -165,6 +165,8 @@ export default function ChatRoomClient({
         inputText={inputText}
         onInputChange={setInputText}
         onSend={handleSend}
+        isSending={isSending}
+        disabled={!currentUserId}
       />
     </Box>
   );
